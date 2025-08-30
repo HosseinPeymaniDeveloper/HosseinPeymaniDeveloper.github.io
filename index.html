@@ -1,97 +1,578 @@
-<!DOCTYPE html>
-<html lang="fa" dir="rtl">
+<!--
+  Resume / Portfolio Template
+  Author: Hossein Peymani
+  License: Unlicense
+
+  Features included:
+  - Dual language (English / فارسی) with a language combobox in the top-right.
+  - Direction switching for RTL when فارسی is selected.
+  - Theme toggle (dark/light) with system preference respect and localStorage persistence.
+  - Accessibility: skip link, ARIA roles/labels, high-contrast friendly, reduced-motion support.
+  - Fonts from Google Fonts (Inter + Cairo). SVG icons inlined (no external icon CDN).
+-->
+
+<!doctype html>
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>حسین پیمانی</title>
-    <style>
-        body {
-            font-family: sans-serif;
-            margin: 0;
-            padding: 0;
-            line-height: 1.6;
-            background: #f7f7f7;
-            color: #333;
-        }
-        header {
-            background: #222;
-            color: #fff;
-            padding: 2rem 1rem;
-            text-align: center;
-        }
-        header h1 {
-            margin: 0;
-            font-size: 2rem;
-        }
-        header p {
-            margin-top: .5rem;
-            font-size: 1.1rem;
-            color: #bbb;
-        }
-        main {
-            max-width: 800px;
-            margin: auto;
-            padding: 1rem;
-        }
-        section {
-            background: #fff;
-            margin-bottom: 1rem;
-            padding: 1rem;
-            border-radius: 8px;
-            box-shadow: 0 0 5px rgba(0,0,0,0.1);
-        }
-        section h2 {
-            margin-top: 0;
-            color: #444;
-        }
-        ul {
-            padding-left: 1.2rem;
-        }
-        footer {
-            text-align: center;
-            padding: 1rem;
-            font-size: 0.9rem;
-            color: #777;
-        }
-        @media (max-width: 600px) {
-            header h1 { font-size: 1.5rem; }
-        }
-    </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title data-i18n="title">Hossein Peymani — Python Developer (NumPy & Pandas)</title>
+
+  <!-- Google Fonts: Inter (latin) + Cairo (arabic/persian) -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --bg: #f7f9fb;
+      --card: #ffffff;
+      --muted: #6b7280;
+      --accent: #0f6cf0; /* pleasant blue accent */
+      --glass: rgba(255,255,255,0.6);
+      --radius: 12px;
+      --text: #0f1724;
+      --shadow: 0 6px 18px rgba(12,15,20,0.06);
+      --max-width: 980px;
+    }
+    [data-theme="dark"]{
+      --bg: #071023;
+      --card: #07172a;
+      --muted: #9aa6b2;
+      --accent: #5cc3ff;
+      --glass: rgba(255,255,255,0.03);
+      --text: #e6f0fb;
+      --shadow: 0 6px 18px rgba(2,6,14,0.7);
+    }
+
+    /* Respect reduced motion */
+    @media (prefers-reduced-motion: reduce){
+      *{animation-duration:0.001ms!important;transition-duration:0.001ms!important;scroll-behavior:auto!important}
+    }
+
+    html,body{height:100%;}
+    body{
+      margin:0;
+      font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', Cairo, sans-serif;
+      background: linear-gradient(180deg, var(--bg), color-mix(in srgb, var(--bg) 92%, white));
+      color:var(--text);
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      line-height:1.45;
+      padding:24px;
+      display:flex;
+      justify-content:center;
+    }
+
+    /* Layout container */
+    .wrap{
+      width:100%;
+      max-width:var(--max-width);
+      display:grid;
+      grid-template-columns: 320px 1fr;
+      gap:28px;
+      align-items:start;
+    }
+
+    /* Responsive single-column on small screens */
+    @media (max-width:900px){
+      .wrap{grid-template-columns:1fr; padding:0 12px}
+    }
+
+    /* Left column card */
+    .card{
+      background:var(--card);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:20px;
+      overflow:hidden;
+      position:relative;
+    }
+
+    .photo{
+      width:120px;height:120px;border-radius:999px;object-fit:cover;border:4px solid color-mix(in srgb, var(--card) 70%, var(--accent));
+      display:block;margin:0 auto 14px auto;
+    }
+
+    h1{font-size:1.25rem;margin:0 0 6px 0;font-weight:700}
+    .role{font-size:0.95rem;color:var(--muted);margin-bottom:8px}
+    .meta{font-size:0.9rem;color:var(--muted);}
+
+    /* Social links */
+    .social{display:flex;gap:12px;justify-content:center;margin-top:12px}
+    .social a{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:8px;background:var(--glass);text-decoration:none}
+    .social svg{width:20px;height:20px;opacity:0.9}
+
+    /* Right column */
+    main{min-height:200px}
+    section{margin-bottom:20px}
+    .section-title{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+    .section-title h2{margin:0;font-size:1.05rem}
+    p.lead{margin:0;color:var(--muted)}
+
+    /* Experience / projects list */
+    .timeline{display:flex;flex-direction:column;gap:12px}
+    .item{background:linear-gradient(180deg,var(--card), color-mix(in srgb,var(--card) 92%, transparent));padding:14px;border-radius:10px;box-shadow:var(--shadow)}
+    .item h3{margin:0 0 6px 0;font-size:1rem}
+    .metaitem{font-size:0.9rem;color:var(--muted)}
+
+    /* Skills */
+    .skill{margin-bottom:10px}
+    .skill .label{display:flex;justify-content:space-between;font-size:0.9rem;margin-bottom:6px}
+    .bar{background:linear-gradient(90deg, color-mix(in srgb,var(--muted) 8%, transparent), transparent);height:10px;border-radius:999px;overflow:hidden}
+    .bar > i{display:block;height:100%;border-radius:999px;width:0; background:linear-gradient(90deg,var(--accent), color-mix(in srgb,var(--accent) 60%, black));box-shadow:0 2px 8px rgba(15,108,240,0.18)}
+
+    /* Controls: language & theme */
+    .controls{position:fixed;top:18px;right:18px;display:flex;gap:8px;z-index:40}
+    .controls select,.controls button{font-size:0.9rem;padding:8px 10px;border-radius:8px;border:1px solid color-mix(in srgb,var(--muted) 18%, transparent);background:var(--card);cursor:pointer}
+
+    /* Skip link */
+    .skip{position:absolute;left:12px;top:6px;background:#000;color:#fff;padding:8px;border-radius:6px;z-index:60;transform:translateY(-120%);opacity:0;transition:all .18s}
+    .skip:focus{transform:none;opacity:1}
+
+    /* Footer / contact */
+    footer{margin-top:8px;font-size:0.9rem;color:var(--muted)}
+
+    /* RTL handling: add .rtl on body */
+    :root[dir="rtl"]{direction:rtl}
+    body.rtl{direction:rtl}
+    body.rtl .wrap{grid-template-columns:1fr 320px}
+    body.rtl .social{justify-content:center}
+
+    /* subtle animations */
+    .fade-up{opacity:0;transform:translateY(6px);animation:fadeUp .55s cubic-bezier(.2,.9,.3,1) forwards}
+    @keyframes fadeUp{to{opacity:1;transform:none}}
+
+    /* small utilities */
+    .muted{color:var(--muted)}
+    a.link{color:var(--accent);text-decoration:none}
+
+    /* high-contrast accessibility helper (activated with [data-contrast]) */
+    [data-contrast="high"]{filter:contrast(1.15);}
+
+    /* ensure form controls large enough for keyboard */
+    .controls select:focus,.controls button:focus{outline:3px solid color-mix(in srgb,var(--accent) 40%, white);outline-offset:3px}
+
+  </style>
 </head>
 <body>
-    <header>
-        <h1>حسین پیمانی</h1>
-        <p>برنامه‌نویس پایتون | علاقه‌مند به داده‌کاوی</p>
-    </header>
-    <main>
-        <section>
-            <h2>درباره من</h2>
-            <p>من از سال 1400 به صورت جدی شروع به یادگیری برنامه‌نویسی کردم. در این سالها چیزهای مختلفی را امتحان کرده‌ام، شامل: Python و Numpy و Pandas، HTML و CSS، PHP و Laravel و اخیرا Wordpress.</p>
-        </section>
-        <section>
-            <h2>مهارت‌ها</h2>
-            <ul>
-                <li>Python و کتابخانه‌های مرتبط با داده</li>
-                <li>Git و GitHub</li>
-            </ul>
-        </section>
-        <section>
-            <h2>سوابق کاری / پروژه‌ها</h2>
-			<ul>
-			<li><a href="https://github.com/HosseinPeymaniDeveloper/student_dataset_analysis">تحلیل مجموعه‌داده دانش‌آموزی</a> | یک پروژۀ سطح ابتدایی تحلیل داده با استفاده از Numpy و Pandas</li>
-			<li><a href="https://github.com/brightening-eyes/gooshkon_archive_bot">ربات آرشیو گوش‌کن</a> | مشارکت در یک پروژۀ ربات تلگرامی مرتبط با وبسایت <a href="https://gooshkon.ir/">محله نابینایان</a></li>
-			<li><a href="https://github.com/HosseinPeymaniDeveloper/task-manager/">مدیریت وظایف</a> | یک مینی‌پروژه برای تمرین عملیات CRUD داخل Laravel</li>
-			</ul>
-        </section>
-        <section>
-            <h2>اطلاعات تماس</h2>
-            <p><a href="mailto:h.peymani@outlook.com">ایمیل</a></p>
-            <p><a href="https://github.com/HosseinPeymaniDeveloper">گیت‌هاب</a></p>
-            <p><a href="https://t.me/HosseinPeymani">تلگرام</a></p>
-        </section>
+
+  <a href="#main" class="skip" data-i18n="skipToContent">Skip to content</a>
+
+  <!-- fixed controls: language select + theme toggle -->
+  <div class="controls" role="region" aria-label="Page controls" data-i18n-aria-label="pageControls">
+    <label for="langSelect" class="visually-hidden" data-i18n="language">Language</label>
+    <select id="langSelect" aria-label="Select language" title="Language" data-i18n-aria-label="selectLanguage" data-i18n-title="language">
+      <option value="en">English</option>
+      <option value="fa">فارسی</option>
+    </select>
+    <button id="themeBtn" aria-pressed="false" title="Toggle theme" aria-label="Toggle theme" data-i18n-title="toggleTheme" data-i18n-aria-label="toggleTheme">🌙</button>
+  </div>
+
+  <div class="wrap" role="document" aria-labelledby="name">
+
+    <!-- Left column: profile card -->
+    <aside class="card fade-up" aria-label="Profile card" data-i18n-aria-label="profileCard">
+      <!-- Replace src with your image path (relative path or absolute URL). Keep alt descriptive. -->
+      <img id="profilePhoto" class="photo" src="my_photo.jpg" alt="Hossein's profile photo" data-i18n-alt="profilePhoto">
+      <h1 id="name" data-i18n="name">Hossein Peymani</h1>
+      <div class="role" data-i18n="role">Python Developer (NumPy & Pandas)</div>
+      <div class="meta" data-i18n="location">Isfahan, Iran</div>
+
+      <div style="margin-top:12px;display:flex;justify-content:center;gap:10px">
+        <a class="link" id="downloadCV" href="my_resume_in_persian.pdf" download="CV-HosseinPeymani.pdf" aria-label="Download CV" data-i18n-aria-label="downloadCv">
+          <!-- inline download icon -->
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3v12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 11l4 4 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M21 21H3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" opacity="0.6"/></svg>
+          <span style="margin-left:8px;vertical-align:middle" data-i18n="downloadCv">Download CV (Currently only Persian version, English version coming soon)</span>
+        </a>
+      </div>
+
+      <!-- <div class="social" aria-label="Social links">
+        <a href="#" aria-label="Email" title="Email" id="mailLink"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 7.5v9A2.5 2.5 0 0 0 5.5 19h13a2.5 2.5 0 0 0 2.5-2.5v-9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M21 7.5L12 13 3 7.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+        <a href="#" aria-label="GitHub" title="GitHub"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 .5a12 12 0 0 0-3.79 23.39c.6.11.82-.26.82-.58v-2.1c-3.34.73-4.04-1.6-4.04-1.6-.55-1.4-1.34-1.77-1.34-1.77-1.09-.75.08-.74.08-.74 1.2.09 1.83 1.24 1.83 1.24 1.07 1.82 2.8 1.3 3.48.99.11-.78.42-1.3.76-1.6-2.66-.3-5.46-1.33-5.46-5.92 0-1.3.47-2.36 1.24-3.19-.12-.3-.54-1.5.12-3.13 0 0 1.01-.32 3.3 1.23a11.43 11.43 0 0 1 6 0c2.29-1.55 3.3-1.23 3.3-1.23.66 1.63.24 2.83.12 3.13.77.83 1.24 1.9 1.24 3.19 0 4.6-2.8 5.61-5.47 5.91.43.37.82 1.09.82 2.2v3.26c0 .32.22.69.83.58A12 12 0 0 0 12 .5z" stroke="currentColor" stroke-width="0"/></svg></a>
+        <a href="#" aria-label="LinkedIn" title="LinkedIn"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2c-1.2 0-2 .8-2 2v7h-4v-14h4v2.2c.9-1.6 2.4-2.2 4-2.2zM6 9H2v14h4V9zM4 4a2 2 0 1 1 0 4 2 2 0 0 1 0-4z" fill="currentColor"/></svg></a>
+      </div> -->
+
+      <footer>
+        <div class="muted" data-i18n="goToContact">Want to contact? <a href="#contact" class="link" data-i18n="contactLink">Go to contact</a></div>
+      </footer>
+    </aside>
+
+    <!-- Right column: main content -->
+    <main id="main" class="fade-up" tabindex="-1" role="main" aria-labelledby="name">
+
+      <section id="about">
+        <div class="section-title"><h2 data-i18n="aboutTitle">About</h2></div>
+        <p class="lead" data-i18n="aboutText">I have completed a 30-hour course on Programming for Data Analysis at MicroMaster (affiliated with Sharif University) and gained basic skills in working with NumPy and Pandas. I have also self-taught WordPress and Laravel. In addition, I have some experience in building Telegram bots using Telethon. I am interested in all programming fields, but my preference is working with data, and I have focused more on this area.</p>
+      </section>
+
+      <section id="experience">
+        <div class="section-title"><h2 data-i18n="experienceTitle">Experience</h2></div>
+        <div class="timeline" aria-label="Work history" data-i18n-aria-label="workHistory">
+          <article class="item">
+            <h3 data-i18n="work">Python Developer — Mahaleh Nabinayan's Team</h3>
+            <div class="metaitem" data-i18n="workTime">2025-03 — Present</div>
+            <p class="muted"><a href="https://gooshkon.ir/" data-i18n="mahalehLink">Mahaleh Nabinayan</a></p>
+          </article>
+          <!-- duplicate .item blocks for more positions -->
+        </div>
+      </section>
+
+      <section id="projects">
+        <div class="section-title"><h2 data-i18n="projectsTitle">Projects</h2></div>
+        <div class="timeline" aria-label="Projects" data-i18n-aria-label="projects">
+          <article class="item project">
+            <h3><a class="link" href="https://github.com/HosseinPeymaniDeveloper/student_dataset_analysis" data-i18n="student_dataset_analysisTitle">student_dataset_analysis</a></h3>
+            <!-- <div class="metaitem">Short summary — <a class="link" href="#">Live / Repo</a></div> -->
+            <p class="muted" data-i18n="student_dataset_analysisExplain">A beginner-level Pandas/Numpy data analysis project on student records.</p>
+          </article>
+          <article class="item project">
+            <h3 data-i18n="gooshkon_archive_botText">Contribution in <a class="link" href="https://github.com/brightening-eyes/gooshkon_archive_bot" data-i18n="gooshkon_archive_botTitle">gooshkon_archive_bot</a></h3>
+            <!-- <div class="metaitem">Short summary — <a class="link" href="#">Live / Repo</a></div> -->
+            <p class="muted" data-i18n="gooshkon_archive_botExplain">telegram bot that loads archives from gooshkon.ir and returns movies, animations, etc to the user.</p>
+          </article>
+          <article class="item project">
+            <h3><a class="link" href="https://github.com/HosseinPeymaniDeveloper/task-manager" data-i18n="task_managerTitle">task-manager</a></h3>
+            <!-- <div class="metaitem">Short summary — <a class="link" href="#">Live / Repo</a></div> -->
+            <p class="muted" data-i18n="task_managerExplain">A mini project for learning and practicing "CRUD" operations in Laravel.</p>
+          </article>
+          <!-- duplicate for more projects -->
+        </div>
+      </section>
+
+      <section id="skills">
+        <div class="section-title"><h2 data-i18n="skillsTitle">Skills</h2></div>
+        <div>
+          <div class="skill" aria-label="Skill: NumPy & Pandas" data-i18n-aria-label="numPyPandasAria">
+            <div class="label" data-i18n="numPyPandas">NumPy & Pandas<span aria-hidden="true">60%</span></div>
+            <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="60" aria-label="NumPy & Pandas skill level: 60 percent" data-i18n-aria-label="numPyPandasLevel"><i style="width:60%"></i></div>
+          </div>
+          <div class="skill" aria-label="Skill: Backend Development" data-i18n-aria-label="backendDevelopmentAria">
+            <div class="label" data-i18n="backendDevelopment">Backend Development<span aria-hidden="true">50%</span></div>
+            <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" aria-label="Backend Development skill level: 50 percent" data-i18n-aria-label="backendDevelopmentLevel"><i style="width:50%"></i></div>
+          </div>
+          <div class="skill" aria-label="Skill: Git" data-i18n-aria-label="gitAria">
+            <div class="label" data-i18n="git">Git<span aria-hidden="true">60%</span></div>
+            <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="60" aria-label="Git skill level: 60 percent" data-i18n-aria-label="gitLevel"><i style="width:60%"></i></div>
+          </div>
+          <!-- add more skills -->
+        </div>
+      </section>
+
+      <section id="certifications">
+        <div class="section-title"><h2 data-i18n="certsTitle">Certifications & Publications</h2></div>
+        <div class="timeline">
+          <article class="item">
+            <h3 data-i18n="programmingDataAnalysis">Programming for Data Analysis</h3>
+            <div class="metaitem"><a href="https://micro.ce.sharif.edu/" data-i18n="programmingDataAnalysisIssuer">Micromaster</a><span data-i18n="programmingDataAnalysisDate"> — 2024-03</span></div>
+            <p class="muted" data-i18n="programmingDataAnalysisExplain">A 30-hour course offered by MicroMaster (affiliated with Sharif University)</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="contact">
+        <div class="section-title"><h2 data-i18n="contactTitle">Contact</h2></div>
+        <!-- <p class="muted" data-i18n="contactText">Email, links, and simple contact methods are shown here.</p> -->
+
+        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:10px">
+          <a id="mailtoBtn" class="link" href="mailto:h.peymani@outlook.com" aria-label="Send email" data-i18n-aria-label="email"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 4H20V20H4V4Z" stroke="black" stroke-width="2"/><path d="M4 6L12 13L20 6" stroke="black" stroke-width="2"/></svg></a>
+          <a id="teleBtn" class="link" href="https://t.me/HosseinPeymani" aria-label="Send message via Telegram" data-i18n-aria-label="telegram"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M22 2L11 13" stroke="black" stroke-width="2"/><path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="black" stroke-width="2"/></svg></a>
+          <a id="githubBtn" class="link" href="https://github.com/hosseinpeymanideveloper" aria-label="Visit my GitHub" data-i18n-aria-label="github"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C6.48 2 2 6.48 2 12C2 16.42 4.87 20.17 8.84 21.5C9.34 21.59 9.5 21.31 9.5 21.08V19.14C6.73 19.78 6.14 18.18 6.14 18.18C5.64 16.99 5 16.69 5 16.69C4.09 16.1 5.1 16.11 5.1 16.11C6.12 16.19 6.62 17.13 6.62 17.13C7.52 18.78 9.09 18.32 9.68 18.09C9.78 17.4 10.07 16.92 10.39 16.62C7.64 16.32 4.78 15.32 4.78 10.92C4.78 9.66 5.2 8.64 5.92 7.86C5.8 7.56 5.42 6.54 6.02 5.1C6.02 5.1 6.95 4.78 9.5 6.35C10.38 6.08 11.32 5.94 12.26 5.94C13.2 5.94 14.14 6.08 15.02 6.35C17.57 4.78 18.5 5.1 18.5 5.1C19.1 6.54 18.72 7.56 18.6 7.86C19.32 8.64 19.74 9.66 19.74 10.92C19.74 15.33 16.88 16.32 14.13 16.61C14.57 16.98 15 17.7 15 18.86V21.08C15 21.31 15.16 21.59 15.66 21.5C19.63 20.17 22.5 16.42 22.5 12C22.5 6.48 18.02 2 12 2Z" stroke="black" stroke-width="2"/></svg></a>
+        </div>
+      </section>
+
     </main>
-    <footer>
-        © 2025 تمامی حقوق محفوظ است
-    </footer>
+
+  </div>
+
+<script>
+  // Translation dictionary (English / Persian)
+  const translations = {
+    en: {
+        title: 'Hossein Peymani — Python Developer (NumPy & Pandas)',
+        role: 'Python Developer (NumPy & Pandas)',
+        location: 'Isfahan, Iran',
+        aboutTitle: 'About',
+        aboutText: 'I have completed a 30-hour course on Programming for Data Analysis at MicroMaster (affiliated with Sharif University) and gained basic skills in working with NumPy and Pandas. I have also self-taught WordPress and Laravel. In addition, I have some experience in building Telegram bots using Telethon. I am interested in all programming fields, but my preference is working with data, and I have focused more on this area.',
+        experienceTitle: 'Experience',
+        projectsTitle: 'Projects',
+        skillsTitle: 'Skills',
+        certsTitle: 'Certifications & Publications',
+        contactTitle: 'Contact',
+        // contactText: 'Email, links, and simple contact methods are shown here.',
+        contactLink: 'Go to contact',
+        skipToContent: 'Skip to content',
+        pageControls: 'Page controls',
+        language: 'Language',
+        selectLanguage: 'Select language',
+        toggleTheme: 'Toggle theme',
+        profileCard: 'Profile card',
+        profilePhoto: "Hossein's profile photo",
+        name: 'Hossein Peymani',
+        downloadCv: 'Download CV (Currently only Persian version, English version coming soon)',
+        goToContact: 'Want to contact? ',
+        workHistory: 'Work history',
+        work: "Python Developer — Mahaleh Nabinayan's Team",
+        workTime: '2025-03 — Present',
+        mahalehLink: 'Mahaleh Nabinayan',
+        projects: 'Projects',
+        student_dataset_analysisTitle: 'student_dataset_analysis',
+        student_dataset_analysisExplain: 'A beginner-level Pandas/Numpy data analysis project on student records.',
+        gooshkon_archive_botText: 'Contribution in ',
+        gooshkon_archive_botTitle: 'gooshkon_archive_bot',
+        gooshkon_archive_botExplain: 'telegram bot that loads archives from gooshkon.ir and returns movies, animations, etc to the user.',
+        task_managerTitle: 'task-manager',
+        task_managerExplain: 'A mini project for learning and practicing "CRUD" operations in Laravel.',
+        numPyPandasAria: 'Skill: NumPy & Pandas',
+        numPyPandas: 'NumPy & Pandas',
+        numPyPandasLevel: 'NumPy & Pandas skill level: 60 percent',
+        backendDevelopmentAria: 'Skill: Backend Development',
+        backendDevelopment: 'Backend Development',
+        backendDevelopmentLevel: 'Backend Development skill level: 50 percent',
+        gitAria: 'Skill: Git',
+        git: 'Git',
+        gitLevel: 'Git skill level: 60 percent',
+        programmingDataAnalysis: 'Programming for Data Analysis',
+        programmingDataAnalysisIssuer: 'Micromaster',
+        programmingDataAnalysisDate: ' — 2024-03',
+        programmingDataAnalysisExplain: 'A 30-hour course offered by MicroMaster (affiliated with Sharif University)',
+        email: 'Send email',
+        telegram: 'Send message via Telegram',
+        github: 'Visit my GitHub'
+    },
+    fa: {
+        title: 'حسین پیمانی - توسعه‌دهندهٔ Python (NumPy & Pandas)',
+        role: 'توسعه‌دهندهٔ Python',
+        location: 'اصفهان، ایران',
+        aboutTitle: 'درباره',
+        aboutText: 'یک دورهٔ 30 ساعته »برنامه‌سازی برای تحلیل داده« در میکرومستر گذرانده‌ام و یک مهارت اولیه در کار با NumPy و Pandas به دست آورده‌ام. به‌صورت خود‌آموز Wordpress و Laravel را یاد گرفته‌ام. در ساخت ربات تلگرام با Telethon تجربه‌ای داشته‌ام. به تمام شاخه‌های برنامه‌نویسی علاقه‌مند هستم اما ترجیحم کار با داده است و بیشتر به این شاخه پرداخته‌ام.',
+        experienceTitle: 'سوابق کاری',
+        projectsTitle: 'پروژه‌ها',
+        skillsTitle: 'مهارت‌ها',
+        certsTitle: 'گواهی‌ها',
+        contactTitle: 'تماس',
+        // contactText: 'ایمیل، لینک‌ها و روش‌های تماس ساده در اینجا نشان داده می‌شود.',
+        contactLink: 'برو به تماس',
+        skipToContent: 'پرش به محتوا',
+        pageControls: 'کنترلهای صفحه',
+        language: 'زبان',
+        selectLanguage: 'انتخاب زبان',
+        toggleTheme: 'جابه‌جایی تم',
+        profileCard: 'کارت پروفایل',
+        profilePhoto: 'عکس پروفایل حسین',
+        name: 'حسین پیمانی',
+        downloadCv: 'دانلود CV',
+        goToContact: 'میخواهید تماس بگیرید؟ ',
+        workHistory: 'سوابق کار',
+        work: 'توسعه‌دهندهٔ Python - تیم محلهٔ نابینایان',
+        workTime: '1403/12 - همین حالا',
+        mahalehLink: 'محلهٔ نابینایان',
+        projects: 'پروژه‌ها',
+        student_dataset_analysisTitle: 'تحلیل مجموعه‌دادهٔ دانش‌آموزان',
+        student_dataset_analysisExplain: 'یک عملیات تحلیل داده سطح مقدماتی روی رکوردهای دانش‌آموزی.',
+        gooshkon_archive_botText: 'مشارکت در ',
+        gooshkon_archive_botTitle: 'ربات آرشیو گوش‌کن',
+        gooshkon_archive_botExplain: 'یک ربات تلگرام که آرشیوهای سایت gooshkon.ir (مثلا فیلمها یا انیمیشنها یا ...) را بارگذاری میکند و به کاربر برمیگرداند.',
+        task_managerTitle: 'مدیر وظایف',
+        task_managerExplain: 'یک مینی پروژه برای یادگیری و تمرین عملیات "CRUD" در Laravel.',
+        numPyPandasAria: 'مهارت: NumPy و Pandas',
+        numPyPandas: 'NumPy و Pandas',
+        numPyPandasLevel: 'سطح مهارت NumPy و Pandas: 60 درصد',
+        backendDevelopmentAria: 'مهارت: توسعهٔ Backend',
+        backendDevelopment: 'توسعهٔ Backend',
+        backendDevelopmentLevel: 'سطح مهارت توسعهٔ Backend: 50 درصد',
+        gitAria: 'مهارت: Git',
+        git: 'Git',
+        gitLevel: 'سطح مهارت Git: 60 درصد',
+        programmingDataAnalysis: 'برنامه‌سازی برای تحلیل داده',
+        programmingDataAnalysisIssuer: 'میکرومستر',
+        programmingDataAnalysisDate: ' - 1402/12',
+        programmingDataAnalysisExplain: 'یک دورهٔ 30 ساعته ارائه شده توسط میکرومستر (وابسته به دانشگاه شریف)',
+        email: 'ارسال ایمیل',
+        telegram: 'ارسال پیام از طریق تلگرام',
+        github: 'مشاهدهٔ گیت‌هاب من'
+    }
+  };
+
+  // Set up initial UI state
+  (function(){
+    const defaultLang = localStorage.getItem('site-lang') || (navigator.language && navigator.language.startsWith('fa') ? 'fa' : 'en');
+    const storedTheme = localStorage.getItem('site-theme');
+    const preferredDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+    // Elements (guarded: check existence before using)
+    const langSelect = document.getElementById('langSelect');
+    const themeBtn = document.getElementById('themeBtn');
+
+    // Apply language if selector exists, otherwise still apply default
+    if(langSelect) langSelect.value = defaultLang;
+    applyLanguage(defaultLang);
+
+    // Apply theme (only if themeBtn exists, but applyTheme works regardless)
+    if(storedTheme) setTheme(storedTheme);
+    else setTheme(preferredDark ? 'dark' : 'light');
+
+    // Event listeners (only attach if element exists)
+    if(langSelect){
+      langSelect.addEventListener('change', (e)=>{
+        const v = e.target.value;
+        localStorage.setItem('site-lang', v);
+        applyLanguage(v);
+      });
+    }
+
+    if(themeBtn){
+      themeBtn.addEventListener('click', ()=>{
+        const current = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+        const next = current === 'dark' ? 'light' : 'dark';
+        setTheme(next);
+      });
+    }
+
+    // attach mailto buttons quickly — check possible ids (mailLink or mailtoBtn)
+    const mailElem = document.getElementById('mailLink') || document.getElementById('mailtoBtn');
+    if(mailElem){
+      mailElem.addEventListener('click', (ev)=>{
+        ev.preventDefault();
+        // use the actual mailto on the element if present, otherwise fallback
+        const href = mailElem.getAttribute('href') || 'mailto:your.email@example.com';
+        location.href = href;
+      });
+    }
+
+    // small download link mirrors the main download (guarded)
+    const dlSmall = document.getElementById('downloadLinkSmall');
+    if(dlSmall){
+      dlSmall.addEventListener('click', (ev)=>{
+        ev.preventDefault();
+        const a = document.getElementById('downloadCV');
+        if(a && a.getAttribute('href') && a.getAttribute('href') !== '#'){
+          window.open(a.getAttribute('href'), '_blank');
+        } else {
+          alert('Please update the download link in the template (replace # with your PDF path).');
+        }
+      });
+    }
+
+  })();
+
+  function setTheme(mode){
+    if(mode === 'dark'){
+      document.documentElement.setAttribute('data-theme','dark');
+      const btn = document.getElementById('themeBtn');
+      if(btn) btn.textContent = '☀️';
+      if(btn) btn.setAttribute('aria-pressed','true');
+      localStorage.setItem('site-theme','dark');
+    } else {
+      document.documentElement.removeAttribute('data-theme');
+      const btn = document.getElementById('themeBtn');
+      if(btn) btn.textContent = '🌙';
+      if(btn) btn.setAttribute('aria-pressed','false');
+      localStorage.setItem('site-theme','light');
+    }
+  }
+
+  // Helper: replace only direct text nodes of an element (preserve child elements)
+  function setDirectText(el, text){
+    // remove existing direct text nodes
+    const childNodes = Array.from(el.childNodes);
+    childNodes.forEach(node => {
+      if(node.nodeType === Node.TEXT_NODE){
+        node.parentNode.removeChild(node);
+      }
+    });
+    // insert a single text node before the first element child (or append if none)
+    const insertBefore = el.firstElementChild || null;
+    el.insertBefore(document.createTextNode(text), insertBefore);
+  }
+
+  function applyLanguage(lang){
+    const html = document.documentElement;
+    const body = document.body;
+    const dict = translations[lang] || translations.en;
+
+    // Inner text (Default) — but preserve child elements:
+    document.querySelectorAll('[data-i18n]').forEach(el=>{
+      const key = el.getAttribute('data-i18n');
+      if(dict[key]){
+        if(el.tagName.toLowerCase() === 'title') {
+          document.title = dict[key];
+        } else {
+          // If the element has element-children, only replace its direct text nodes
+          if(el.childElementCount > 0){
+            // Place the translated text as the direct text (before child elements)
+            setDirectText(el, dict[key]);
+          } else {
+            // Safe to replace entire text content (no child elements to preserve)
+            el.textContent = dict[key];
+          }
+        }
+      }
+    });
+
+    // alt for imgs
+    document.querySelectorAll('[data-i18n-alt]').forEach(el=>{
+      const key = el.getAttribute('data-i18n-alt');
+      if(dict[key]){
+        el.setAttribute('alt', dict[key]);
+      }
+    });
+
+    // placeholder for input/textarea
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(el=>{
+      const key = el.getAttribute('data-i18n-placeholder');
+      if(dict[key]){
+        el.setAttribute('placeholder', dict[key]);
+      }
+    });
+
+    // title for hover text
+    document.querySelectorAll('[data-i18n-title]').forEach(el=>{
+      const key = el.getAttribute('data-i18n-title');
+      if(dict[key]){
+        el.setAttribute('title', dict[key]);
+      }
+    });
+
+    // aria-label
+    document.querySelectorAll('[data-i18n-aria-label]').forEach(el=>{
+      const key = el.getAttribute('data-i18n-aria-label');
+      if(dict[key]){
+        el.setAttribute('aria-label', dict[key]);
+      }
+    });
+
+    // set page title from translations (last-resort, will override if provided)
+    if(dict.title) document.title = dict.title;
+
+    // set lang and dir (and font-family) — keep body reference safe
+    if(lang === 'fa'){
+      html.lang = 'fa';
+      html.dir = 'rtl';
+      body.classList.add('rtl');
+      body.style.fontFamily = 'Cairo, Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif';
+    } else {
+      html.lang = 'en';
+      html.dir = 'ltr';
+      body.classList.remove('rtl');
+      body.style.fontFamily = 'Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", Cairo, sans-serif';
+    }
+
+    // Ensure progressbar aria-values reflect any changes needed
+    document.querySelectorAll('[role="progressbar"]').forEach(el=>{
+      const v = el.getAttribute('aria-valuenow');
+      if(v) el.style.setProperty('--skill-val', v+'%');
+    });
+  }
+
+  // make skip link focus set main (guarded)
+  const skipLink = document.querySelector('.skip');
+  if(skipLink){
+    skipLink.addEventListener('click', function(e){
+      const m = document.getElementById('main');
+      if(m){ m.setAttribute('tabindex','-1'); m.focus(); }
+    });
+  }
+</script>
+
+
 </body>
 </html>
